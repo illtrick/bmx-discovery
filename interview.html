@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer-led discovery — Nathan Diehl × ButterflyMX</title>
+<meta name="description" content="A discovery artifact submitted as part of the interview process for Director, Product Management at ButterflyMX.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%237241F6'/%3E%3Ctext x='8' y='12' font-family='Georgia,serif' font-size='11' font-weight='600' text-anchor='middle' fill='%23FAFAF7'%3END%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --canvas: #FAFAF7;
+    --canvas-alt: #F4F1EA;
+    --canvas-deep: #EDEAE0;
+    --ink: #1A1A1F;
+    --ink-soft: #5C5C66;
+    --ink-faint: #9A9A9F;
+    --rule: #E8E6DE;
+    --rule-strong: #D3D0C4;
+    --bmx-blue: #1190E7;
+    --bmx-coral: #E6153A;
+    --bmx-purple: #7241F6;
+    --accent: var(--bmx-purple);
+
+    --display: 'Newsreader', Georgia, serif;
+    --body: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+
+    --max-w: 720px;
+    --max-w-wide: 1080px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ============ Sticky nameplate ============ */
+  .nameplate {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(250, 250, 247, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--rule);
+    z-index: 100;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+  }
+  .nameplate .name {
+    font-weight: 500;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .nameplate .context { white-space: nowrap; }
+  .nameplate .progress-track {
+    position: absolute;
+    bottom: -1px; left: 0;
+    height: 1px;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* ============ Section shared ============ */
+  section {
+    padding: 120px 32px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .container { max-width: var(--max-w); margin: 0 auto; }
+  .container-wide { max-width: var(--max-w-wide); margin: 0 auto; }
+
+  /* ============ Section eyebrow ============ */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--ink-faint);
+  }
+
+  /* ============ Cover ============ */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 140px 32px 80px;
+    background:
+      radial-gradient(ellipse at top right, rgba(114, 65, 246, 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, rgba(230, 21, 58, 0.03) 0%, transparent 50%),
+      var(--canvas);
+  }
+  .cover-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 32px;
+  }
+  .cover-headline {
+    font-family: var(--display);
+    font-size: clamp(48px, 7vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 40px;
+    max-width: 16ch;
+  }
+  .cover-headline .accent-word {
+    color: var(--accent);
+    position: relative;
+    white-space: nowrap;
+  }
+  .cover-headline .accent-word::after {
+    content: '';
+    position: absolute;
+    bottom: 0.05em;
+    left: 0; right: 0;
+    height: 0.06em;
+    background: var(--accent);
+    opacity: 0.45;
+    border-radius: 2px;
+  }
+  .cover-subhead {
+    font-size: 22px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    max-width: 56ch;
+    margin-bottom: 80px;
+    font-weight: 300;
+  }
+  .cover-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule);
+  }
+  .cover-meta .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .cover-meta .value {
+    font-size: 16px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .cover-meta .value-sm {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  /* ============ Finding headlines & body ============ */
+  .finding-headline {
+    font-family: var(--display);
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    font-weight: 400;
+    margin-bottom: 40px;
+    max-width: 22ch;
+  }
+  .finding-subhead {
+    font-family: var(--display);
+    font-size: 26px;
+    line-height: 1.25;
+    font-weight: 500;
+    margin: 64px 0 24px;
+    color: var(--ink);
+    max-width: 28ch;
+  }
+  .finding-body {
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+  .finding-body.muted { color: var(--ink-soft); }
+  .finding-body em {
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .finding-body strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ============ Pull quote ============ */
+  .pullquote {
+    margin: 56px 0;
+    padding: 32px 0 32px 40px;
+    border-left: 3px solid var(--bmx-blue);
+  }
+  .pullquote.eric { border-left-color: var(--bmx-blue); }
+  .pullquote.ted { border-left-color: var(--bmx-coral); }
+  .pullquote-text {
+    font-family: var(--display);
+    font-size: 25px;
+    line-height: 1.35;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  .pullquote-text + .pullquote-text {
+    margin-top: 20px;
+  }
+  .pullquote-attribution {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pullquote-attribution::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .pullquote.eric .pullquote-attribution::before { background: var(--bmx-blue); }
+  .pullquote.ted .pullquote-attribution::before { background: var(--bmx-coral); }
+
+  /* ============ Two-column quotes ============ */
+  .quote-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin: 56px 0;
+  }
+  .quote-grid .pullquote {
+    margin: 0;
+    padding: 24px 0 24px 28px;
+  }
+  .quote-grid .pullquote-text {
+    font-size: 19px;
+    margin-bottom: 14px;
+  }
+  .quote-grid-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .quote-grid-label.eric { color: var(--bmx-blue); }
+  .quote-grid-label.ted { color: var(--bmx-coral); }
+
+  /* ============ Callout block ============ */
+  .callout {
+    margin: 56px 0;
+    padding: 32px;
+    background: var(--canvas-alt);
+    border-radius: 4px;
+  }
+  .callout-headline {
+    font-family: var(--display);
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 500;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  .callout ul { list-style: none; padding: 0; }
+  .callout li {
+    padding: 8px 0;
+    font-size: 17px;
+    color: var(--ink);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .callout li::before {
+    content: '';
+    flex-shrink: 0;
+    width: 6px; height: 6px;
+    background: var(--ink);
+    border-radius: 50%;
+    margin-top: 11px;
+  }
+
+  /* ============ Implication block — PROMOTED ============ */
+  .implication {
+    margin: 64px 0 0;
+    padding: 36px 36px 36px 40px;
+    background: var(--ink);
+    color: var(--canvas);
+    border-radius: 6px;
+    position: relative;
+  }
+  .implication::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 36px; bottom: 36px;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+  .implication-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    font-weight: 500;
+    display: block;
+  }
+  .implication-text {
+    font-family: var(--display);
+    font-size: 22px;
+    line-height: 1.4;
+    font-weight: 400;
+    color: var(--canvas);
+  }
+  .implication-text em {
+    font-style: italic;
+    color: rgba(250, 250, 247, 0.7);
+  }
+  .implication-text strong {
+    font-weight: 600;
+  }
+
+  /* ============ Section 2: customer cards ============ */
+  .customer-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin: 56px 0;
+  }
+  .customer-card {
+    padding: 36px;
+    background: var(--canvas-alt);
+    border-radius: 6px;
+    border-top: 3px solid var(--bmx-blue);
+  }
+  .customer-card.ted { border-top-color: var(--bmx-coral); }
+  .customer-card-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bmx-blue);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .customer-card.ted .customer-card-label { color: var(--bmx-coral); }
+  .customer-card-name {
+    font-family: var(--display);
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .customer-card-role {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin-bottom: 20px;
+  }
+  .customer-card-body {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  .customer-card-body strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .customer-card-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* ============ Section 3: exec summary findings list ============ */
+  .summary-findings {
+    margin: 48px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .summary-finding {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+    text-decoration: none;
+    color: inherit;
+    transition: padding-left 0.2s ease, background 0.2s ease;
+  }
+  .summary-finding:hover {
+    padding-left: 8px;
+    background: linear-gradient(to right, var(--canvas-alt), transparent);
+  }
+  .summary-finding:first-of-type { border-top: 1px solid var(--rule); }
+  .summary-finding-number {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .summary-finding-title {
+    font-family: var(--display);
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .summary-finding-arrow {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--ink-faint);
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+  .summary-finding:hover .summary-finding-arrow {
+    color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  /* Next steps block in summary */
+  .next-block {
+    margin: 64px 0 0;
+    padding: 36px 36px 36px 40px;
+    background: var(--canvas-alt);
+    border-radius: 6px;
+    position: relative;
+  }
+  .next-block::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 36px; bottom: 36px;
+    width: 3px;
+    background: var(--ink-soft);
+    border-radius: 0 2px 2px 0;
+  }
+  .next-block-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+    font-weight: 500;
+    display: block;
+  }
+  .next-block h3 {
+    font-family: var(--display);
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 500;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+  .next-block p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .next-block ul {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0;
+  }
+  .next-block li {
+    padding: 10px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    column-gap: 12px;
+    align-items: baseline;
+  }
+  .next-block li + li {
+    padding-top: 14px;
+  }
+  .next-block li::before {
+    content: '→';
+    color: var(--accent);
+    font-family: var(--mono);
+    line-height: 1.6;
+  }
+  .next-block li strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ============ Section 6: screenshot ============ */
+  .screenshot-block {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 56px;
+    margin: 56px 0;
+    align-items: start;
+  }
+  .screenshot-frame {
+    background: #000;
+    border-radius: 32px;
+    padding: 10px;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.2), 0 18px 36px -18px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 80px;
+  }
+  .screenshot-frame img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 24px;
+  }
+  .screenshot-callouts {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .callout-item {
+    padding: 20px 0 20px 24px;
+    border-left: 2px solid var(--rule-strong);
+  }
+  .callout-item-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .callout-item-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .callout-item-text em {
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .callout-item-text strong { font-weight: 600; }
+
+  /* ============ Section 8: AI priority stack ============ */
+  .ai-priority {
+    margin: 48px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .ai-priority-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 32px;
+    padding: 32px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .ai-priority-item:last-of-type { border-bottom: 1px solid var(--rule); }
+  .ai-priority-rank {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-top: 4px;
+  }
+  .ai-priority-rank-num {
+    font-family: var(--display);
+    font-size: 36px;
+    line-height: 1;
+    color: var(--accent);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .ai-priority-title {
+    font-family: var(--display);
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 500;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .ai-priority-body {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .ai-priority-body em {
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .ai-priority-examples {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+
+  /* ============ About section ============ */
+  .section-divider {
+    padding: 80px 32px 40px;
+    text-align: center;
+    border-bottom: none;
+  }
+  .section-divider .mark {
+    font-family: var(--display);
+    color: var(--ink-faint);
+    font-size: 32px;
+    letter-spacing: 0.5em;
+    line-height: 1;
+  }
+  .about {
+    padding: 60px 32px 140px;
+    background: var(--canvas-alt);
+    border-top: 2px solid var(--ink);
+    border-bottom: none;
+  }
+  .about-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .about-eyebrow::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--ink-soft);
+  }
+  .about-headline {
+    font-family: var(--display);
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    font-weight: 400;
+    margin-bottom: 40px;
+    max-width: 22ch;
+  }
+  .about-body {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ink);
+    margin-bottom: 22px;
+  }
+  .about-body.muted { color: var(--ink-soft); }
+  .about-credentials {
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .cred-block { margin-bottom: 48px; }
+  .cred-role {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .cred-title {
+    font-family: var(--display);
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 500;
+    margin-bottom: 18px;
+    color: var(--ink);
+  }
+  .cred-list { list-style: none; padding: 0; }
+  .cred-list li {
+    padding: 6px 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .cred-list li::before {
+    content: '';
+    flex-shrink: 0;
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-top: 10px;
+  }
+  .contact-block {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule-strong);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 24px;
+    align-items: baseline;
+    font-size: 15px;
+  }
+  .contact-block dt {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .contact-block dd { color: var(--ink); }
+  .contact-block a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+    transition: border-color 0.15s;
+  }
+  .contact-block a:hover { border-bottom-color: var(--accent); }
+
+  /* ============ A11y ============ */
+  .skip-nav {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    padding: 10px;
+    background: var(--ink);
+    color: var(--canvas);
+    z-index: 200;
+  }
+  .skip-nav:focus { top: 0; }
+
+  /* ============ Responsive ============ */
+  @media (max-width: 900px) {
+    .quote-grid { grid-template-columns: 1fr; gap: 32px; }
+    .customer-cards { grid-template-columns: 1fr; }
+    .screenshot-block { grid-template-columns: 1fr; gap: 48px; }
+    .screenshot-frame { max-width: 320px; margin: 0 auto; position: static; }
+    .ai-priority-item { grid-template-columns: 1fr; gap: 16px; }
+    .summary-finding { grid-template-columns: 50px 1fr auto; gap: 16px; }
+  }
+  @media (max-width: 720px) {
+    section { padding: 80px 24px; }
+    .cover { padding: 120px 24px 60px; }
+    .about { padding: 50px 24px 100px; }
+    .nameplate { padding: 0 20px; font-size: 11px; gap: 12px; }
+    .nameplate .context { display: none; }
+    .cover-meta { grid-template-columns: 1fr; gap: 24px; }
+    .pullquote { padding-left: 24px; margin: 40px 0; }
+    .pullquote-text { font-size: 21px; }
+    .callout, .implication, .next-block { padding: 24px; }
+    .implication::before, .next-block::before { left: 0; }
+    .implication-text { font-size: 18px; }
+    .contact-block { grid-template-columns: 1fr; gap: 4px 0; }
+    .contact-block dt { margin-top: 12px; }
+    .summary-finding-title { font-size: 18px; }
+  }
+  @media (max-width: 380px) {
+    .nameplate { padding: 0 16px; }
+    .cover-headline { font-size: 42px; }
+    .finding-headline { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-nav" href="#main">Skip to content</a>
+
+<div class="nameplate" role="banner">
+  <div class="name">Nathan Diehl</div>
+  <div class="context">Customer-led discovery · ButterflyMX</div>
+  <div class="progress-track" id="progress" aria-hidden="true"></div>
+</div>
+
+<main id="main">
+
+<section class="cover" id="section-1" data-section="1" data-section-name="cover">
+  <div class="container">
+    <div class="cover-eyebrow">Discovery · May 2026</div>
+
+    <h1 class="cover-headline">
+      Two ButterflyMX customers interviewed.<br>
+      Five <span class="accent-word">findings</span> to explore.
+    </h1>
+
+    <p class="cover-subhead">
+      I sat down with a Seattle developer who chose ButterflyMX for his property, and a resident who lives with it every day. Two real ButterflyMX customer-led interviews. What follows is what they actually said, what it means for the product, and where I'd take us next.
+    </p>
+
+    <div class="cover-meta">
+      <div>
+        <div class="label">Performed by</div>
+        <div class="value">Nathan Diehl</div>
+        <div class="value-sm">nathan.diehl@outlook.com · Seattle, WA</div>
+      </div>
+      <div>
+        <div class="label">In context to</div>
+        <div class="value">Director, Product Management</div>
+        <div class="value-sm">Core Access &amp; Security · ButterflyMX</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="section-2" data-section="2" data-section-name="methodology">
+  <div class="container">
+    <div class="eyebrow">The work, briefly</div>
+
+    <h2 class="finding-headline">Two interviews. Two roles. One product to learn from.</h2>
+
+    <p class="finding-body">
+      Customer-led discovery is the practice of starting with what customers actually do and say, not what we assume about them, and letting that shape product decisions. This brief discovery work demonstrates what even two well-chosen interviews can surface.
+    </p>
+
+    <p class="finding-body">
+      Each conversation was a scheduled 30 minutes, recorded with consent. AI was used to transcribe, surface patterns, create this site and provide draft copy. I orchestrated the tools then improved clarity and focus. One participant is a developer; one is a resident. Both live in Seattle.
+    </p>
+
+    <div class="customer-cards">
+      <div class="customer-card eric">
+        <div class="customer-card-label">Operator</div>
+        <div class="customer-card-name">Eric H.</div>
+        <div class="customer-card-role">Principal · Revolve Development</div>
+        <div class="customer-card-body">
+          Seattle developer with <strong>five completed projects</strong>, focused on boutique design-forward multifamily in urban cores. Chose ButterflyMX for a <strong>79-unit Class A property</strong> at 14th &amp; Pine on Capitol Hill. Previously had selected DoorKing for a value-positioned property in Boise the same year.
+        </div>
+        <div class="customer-card-body">
+          The Operator made the install decision as the developer-owner. Day-to-day operations are run by a third-party Property Management group.
+        </div>
+        <div class="customer-card-meta">30-minute interview · recorded with consent</div>
+      </div>
+
+      <div class="customer-card ted">
+        <div class="customer-card-label">Resident</div>
+        <div class="customer-card-name">Ted C.</div>
+        <div class="customer-card-role">Resident · The Danforth</div>
+        <div class="customer-card-body">
+          <strong>40-year-old medical resident</strong>, one year into a tenancy at The Danforth — a <strong>265-unit Class A high-rise</strong> on the First Hill / Capitol Hill border. First time living in a building with ButterflyMX.
+        </div>
+        <div class="customer-card-body">
+          The Resident uses the ButterflyMX app 2–3 times per week, predominantly to access the package delivery room.
+        </div>
+        <div class="customer-card-meta">30-minute interview · recorded with consent</div>
+      </div>
+    </div>
+
+    <p class="finding-body muted">
+      Even though two interviews can surface real signal, they should not by themselves drive business decisions. Adding the perspective of the integrators, on-site Property Management, and a larger sample size across building types, markets, and tenancies is how I will move insights from <em>"interesting"</em> to <em>"actionable."</em> The closing section names what I'd validate next.
+    </p>
+  </div>
+</section>
+
+<section id="section-3" data-section="3" data-section-name="summary">
+  <div class="container">
+    <div class="eyebrow">Executive summary</div>
+
+    <h2 class="finding-headline">What two conversations surfaced.</h2>
+
+    <p class="finding-body">
+      Below are the five findings these interviews produced. Each links to its full treatment with quotes, evidence, and the product implication I'd carry into the role.
+    </p>
+
+    <div class="summary-findings">
+      <a class="summary-finding" href="#section-4">
+        <div class="summary-finding-number">01</div>
+        <div class="summary-finding-title">Property Management appears to be a key influencer in the buying decision — and possibly a deal blocker.</div>
+        <div class="summary-finding-arrow">→</div>
+      </a>
+      <a class="summary-finding" href="#section-5">
+        <div class="summary-finding-number">02</div>
+        <div class="summary-finding-title">Two voices, opposite ends of the product, independently asked for the same thing: an integrated suite.</div>
+        <div class="summary-finding-arrow">→</div>
+      </a>
+      <a class="summary-finding" href="#section-6">
+        <div class="summary-finding-number">03</div>
+        <div class="summary-finding-title">Users value the app's simplicity and reliability — but there's opportunity to help them even more.</div>
+        <div class="summary-finding-arrow">→</div>
+      </a>
+      <a class="summary-finding" href="#section-7">
+        <div class="summary-finding-number">04</div>
+        <div class="summary-finding-title">For this resident, the package experience dominates in-app use — and points to an expansion opportunity through integration, not necessarily new hardware.</div>
+        <div class="summary-finding-arrow">→</div>
+      </a>
+      <a class="summary-finding" href="#section-8">
+        <div class="summary-finding-number">05</div>
+        <div class="summary-finding-title">A proposed framework for where AI belongs in the product. Context is critical.</div>
+        <div class="summary-finding-arrow">→</div>
+      </a>
+    </div>
+
+    <div class="next-block">
+      <span class="next-block-label">To make this drive business decisions</span>
+      <h3>Here's what would make it a foundation.</h3>
+      <p>
+        With another week and access to additional users, I would close three specific gaps before treating these findings as anything more than directional:
+      </p>
+      <ul>
+        <li><div><strong>Property Management.</strong> The Operator's account suggests Property Management drove the recommendation in his case. The Resident side gives us no read on this group at all. Understanding the value props and pain points of this group is imperative for validation and developing any respective strategy. The Operator specifically offered to connect me with the new Property Management group at his building once a transition completes.</div></li>
+        <li><div><strong>An installer or low-voltage integrator.</strong> The Operator uses one for installation and post-warranty service but wasn't able to connect me to them. ButterflyMX has publicly emphasized installer-friendliness as a wedge — the absence of in-unit wiring, the ease of deployment. The installer perspective is the one most likely to surface implementation friction the Operator never sees.</div></li>
+        <li><div><strong>A deep dive on installation data and alignment to ButterflyMX's strategic goals.</strong> I would analytically develop a baseline for the real-world application of the product portfolio as a starting place, then build the roadmap to take us to the "top of the mountain."</div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="section-4" data-section="4" data-section-name="pm-channel">
+  <div class="container">
+    <div class="eyebrow">Finding 01</div>
+
+    <h2 class="finding-headline">
+      The Operator made the call. But the decision lived in conversation with Property Management.
+    </h2>
+
+    <p class="finding-body">
+      The Operator has the capital, the entitlements, the design authority. He's the one signing the contract.
+    </p>
+
+    <p class="finding-body">
+      But asked how he chose ButterflyMX, his answer wasn't about features or specs. It was about who he asked first.
+    </p>
+
+    <div class="pullquote eric">
+      <div class="pullquote-text">
+        Frankly, we reached out to our property managers and just said, "What are you guys using? What's the most effective for you?" It came down to the fact that our property managers were familiar with Butterfly, and that was pretty widely used in the Seattle market.
+      </div>
+      <div class="pullquote-attribution">Eric H. · Operator</div>
+    </div>
+
+    <p class="finding-body">
+      The Operator made the call. But before he made it, he asked Property Management what they wanted.
+    </p>
+
+    <p class="finding-body muted">
+      The Operator's account points to Property Management groups — working with the same vendors across competing buildings — as an influential voice in the buying decision, and potentially a deal blocker if they won't support a product. A single operator's experience doesn't establish this as the category pattern, but it's directionally consistent with how this channel tends to operate. More interviews with operators and integrators across markets would sharpen the picture considerably.
+    </p>
+
+    <div class="implication">
+      <span class="implication-label">Implication for product</span>
+      <div class="implication-text">
+        If the pattern holds across more interviews, the operator dashboard becomes more than a feature — it becomes a structural advantage. Workflow depth, training, certification, day-to-day reliability for Property Management groups would compound across every building in every market. Worth pressure-testing how much further this channel can be widened relative to where competitors are investing.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="section-5" data-section="5" data-section-name="integrated-suite">
+  <div class="container">
+    <div class="eyebrow">Finding 02</div>
+
+    <h2 class="finding-headline">
+      Both customers asked for the same thing, in different words.
+    </h2>
+
+    <p class="finding-body">
+      The Operator volunteered it twice, unprompted. The Resident echoed it without ever having heard the Operator say it. With only two conversations, it's hard to call any finding definitive — but this is the most resonant convergence the two interviews produced.
+    </p>
+
+    <div class="quote-grid">
+      <div>
+        <div class="quote-grid-label eric">The Operator's framing</div>
+        <div class="pullquote eric">
+          <div class="pullquote-text">
+            There's still this kind of fragmentation, and I think that's true in the market. We're still kind of piece-mealing systems together and they work well enough together. But it feels like there's room there for somebody to figure that out.
+          </div>
+          <div class="pullquote-text">
+            Whoever can break into that space first to say "here's all-inclusive" — I'm sure there is somebody that's done it, I don't know if anybody's done it well enough where it's fully adopted.
+          </div>
+          <div class="pullquote-attribution">Eric H. · Operator</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="quote-grid-label ted">The Resident's framing</div>
+        <div class="pullquote ted">
+          <div class="pullquote-text">
+            If Butterfly was looking to do something new or expanded, it would be sweet if it was all just one app.
+          </div>
+          <div class="pullquote-text">
+            Basically right now I have a Butterfly app, a Package Concierge app that I never use, and the resident experience app which I never use because it's so brutal to work with. I'd rather use a website.
+          </div>
+          <div class="pullquote-attribution">Ted C. · Resident</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="finding-body">
+      The Operator is asking for a unified back-of-house: one vendor, one contract, one support call. The Resident is asking for a unified front-of-house: one app, one place to look, one fewer thing to download.
+    </p>
+
+    <p class="finding-body">
+      Same gap. Different ends of the same product. The Operator voice surfacing operational fragmentation. The Resident voice surfacing cognitive fragmentation. Two perspectives, independently named — a stronger signal than either alone, though still two data points.
+    </p>
+
+    <div class="implication">
+      <span class="implication-label">Implication for product</span>
+      <div class="implication-text">
+        This is a platform decision — build, partner, or acquire — not a line on a roadmap. What's striking is how much of the hard part ButterflyMX has already done: the unit-door locks, the property-management software, even the leasing AI already connect to it. The pieces are there, but they don't yet feel like one product — one system the operator runs, one app the resident actually opens. That's the opportunity these two interviews point to, and the package room shows it most plainly: for this resident, it's still a separate app and a separate login. The question worth testing with more conversations is how much of that experience ButterflyMX should own outright versus stitch together from the partners it already has.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="section-6" data-section="6" data-section-name="user-behavior">
+  <div class="container-wide">
+    <div class="eyebrow">Finding 03</div>
+
+    <h2 class="finding-headline">
+      Users value the app's simplicity and reliability — but there's opportunity to help them even more.
+    </h2>
+
+    <p class="finding-body" style="max-width: 56ch;">
+      The Resident's account of living with the ButterflyMX app is, in the simplest terms, restrained praise. He doesn't think about it much. It doesn't get in his way. It does what he needs it to do. He sent the screenshot below unprompted near the end of the interview, while walking through his actual usage.
+    </p>
+
+    <div class="screenshot-block">
+      <div class="screenshot-frame">
+        <img src="app-screenshot.jpg" width="720" height="1561" loading="lazy" alt="Screenshot of the Resident's ButterflyMX app home screen showing Visitor Pass and Delivery Pass buttons at the top, then a 'My Access' list with four doors: Lobby Ramp Entrance, Main Entrance, P1 Garage, and Package Room, each with a 'swipe to unlock' control.">
+      </div>
+
+      <div class="screenshot-callouts">
+        <div class="callout-item">
+          <div class="callout-item-label">Visitor Pass / Delivery Pass</div>
+          <div class="callout-item-text">
+            Top of screen. Most prominent affordances. <em>"I know the app offers guest passes you can give people in advance. I've never really used that."</em> — Ted C., Resident
+          </div>
+        </div>
+
+        <div class="callout-item">
+          <div class="callout-item-label">Lobby Ramp, Main Entrance, P1 Garage</div>
+          <div class="callout-item-text">
+            The Resident enters these with a physical fob, not the app. The fob is just faster.
+          </div>
+        </div>
+
+        <div class="callout-item">
+          <div class="callout-item-label">Package Room</div>
+          <div class="callout-item-text">
+            The only door the Resident regularly opens with the app. <strong>~95% of his app usage.</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" style="padding: 0; margin-top: 64px;">
+      <p class="finding-body">
+        In his own words, the Resident called the app <em>"fast enough and nice enough that I don't think it adds drag to the experience."</em> That's restrained praise — but it's praise. The product gets out of his way, and his usage pattern reflects that confidence.
+      </p>
+
+      <p class="finding-body">
+        The opportunity is in what sits just behind the simplicity. The same Resident who finds the basics frictionless also revealed real confusion about how parts of the system work — specifically the elevator integration:
+      </p>
+
+      <div class="pullquote ted">
+        <div class="pullquote-text">
+          The only thing that I wasn't clear on initially was how it interfaces with the elevators, but I was happy to learn — I'm still basically just guessing here how this works. It seems like when you call me from the panel outside, I can unlock the door with my phone and then the system must be tied into the elevators and it basically unlocks my floor for a period of time, is what I'm guessing.
+        </div>
+        <div class="pullquote-attribution">Ted C. · Resident</div>
+      </div>
+
+      <p class="finding-body">
+        And about which doors and readers are ButterflyMX versus other systems in the building:
+      </p>
+
+      <div class="pullquote ted">
+        <div class="pullquote-text">
+          I almost wonder if that's part of a Butterfly system. The fob taps on the non-Butterfly panel reader thing and the door opens. Alternatively, I could open my app and make the door open with Butterfly, but I can't do that for my own apartment unit.
+        </div>
+        <div class="pullquote-attribution">Ted C. · Resident</div>
+      </div>
+
+      <div class="implication">
+        <span class="implication-label">Implication for product</span>
+        <div class="implication-text">
+          The app is working. Be sure any change clears the ROI bar before shipping. A clearer near-term opportunity may be in-app help — an AI assistant that can answer <em>"will my guest be able to use the elevator?"</em> or <em>"how do I give the dog walker scheduled access?"</em> using the building's actual configuration. The Resident's confusion isn't about the controls. It's about understanding the system. Worth testing whether other residents describe the same gap.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="section-7" data-section="7" data-section-name="package-opportunity">
+  <div class="container">
+    <div class="eyebrow">Finding 04</div>
+
+    <h2 class="finding-headline">
+      For the Resident, the package experience dominates in-app use — and points toward a clear expansion opportunity.
+    </h2>
+
+    <p class="finding-body">
+      95% of the Resident's ButterflyMX engagement happens at the Package Room door. It's the only door he can't open with his fob. So when he gets a package, he opens the app.
+    </p>
+
+    <p class="finding-body">
+      What happens after he opens it is where the experience falls apart — and almost none of it is ButterflyMX's fault directly.
+    </p>
+
+    <div class="pullquote ted">
+      <div class="pullquote-text">
+        The package guy — random, he's got like 20 packages — he randomly picks one person's package and says "I'm here for Tim." He goes in there and puts 20 different packages in. Tim gets a notification and no one else does.
+      </div>
+      <div class="pullquote-text">
+        When it gets overcrowded, the system breaks down, and then you spend like 10 minutes digging around trying to find your package.
+      </div>
+      <div class="pullquote-attribution">Ted C. · Resident · on the package room workflow</div>
+    </div>
+
+    <p class="finding-body">
+      But the more interesting signal is what the Resident does <strong>not</strong> use ButterflyMX for. The property also has a parcel locker system from Package Concierge that delivers a meaningfully better experience for individual packages:
+    </p>
+
+    <div class="pullquote ted">
+      <div class="pullquote-text">
+        The Package Concierge machine is where I prefer all of my packages to go because my package gets an individual cubby that's locked, and they have their own app and you register your phone number with them. Anytime someone puts a package in the Package Concierge, I get a text and a barcode, and I go down and I scan my barcode and the thing pops open. That's the single nicest thing in this area of services that I have encountered.
+      </div>
+      <div class="pullquote-attribution">Ted C. · Resident</div>
+    </div>
+
+    <p class="finding-body">
+      The locker only fails because it can't keep up with the building's volume — overflow lands in the ButterflyMX-controlled room, where the dysfunction starts.
+    </p>
+
+    <p class="finding-body">
+      Importantly, the Resident barely uses the Package Concierge app either. Once registered, the experience runs on text-and-barcode. He has <em>three apps installed for one building</em>, uses one of them, and prefers a workflow that bypasses the apps entirely.
+    </p>
+
+    <div class="implication">
+      <span class="implication-label">Implication for product</span>
+      <div class="implication-text">
+        From this single resident's experience, the more promising path looks like integration over net-new hardware — ButterflyMX as the unified identity and notification layer, the locker as a hardware partner, no separate registration, no second app. That direction is worth pressure-testing with more residents, with Property Management operators, and against ButterflyMX's existing partner roadmap.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="section-8" data-section="8" data-section-name="ai-strategy">
+  <div class="container">
+    <div class="eyebrow">Finding 05</div>
+
+    <h2 class="finding-headline">
+      A proposed framework for where AI belongs in the product. Context is critical.
+    </h2>
+
+    <p class="finding-body">
+      AI in access and security is high-stakes territory. Done well it compounds operator efficiency, reseller reach, and resident experience. Done poorly it accelerates the surveillance critique this category has been navigating for years and damages resident trust where trust <em>is</em> the product.
+    </p>
+
+    <p class="finding-body">
+      What follows is a priority-ordered framework for introducing AI to a security and access control product — drawn from these two interviews and from industry knowledge of where adjacent platforms have moved. Not a definitive position. A starting point for a conversation worth having.
+    </p>
+
+    <div class="ai-priority">
+
+      <div class="ai-priority-item">
+        <div class="ai-priority-rank">
+          <span class="ai-priority-rank-num">01</span>
+          Highest leverage
+        </div>
+        <div>
+          <div class="ai-priority-title">Operator insights and efficiency gains</div>
+          <p class="ai-priority-body">
+            If the pattern holds more broadly, Property Management is a critical channel — and AI that makes their job faster, sharper, and more confident is a high-leverage investment. The most concrete near-term version is AI layered on ButterflyMX's Security Cameras — anomaly surfacing, searchable footage, and sharper package-room identification that turns passive video into the few moments an operator actually acts on. Largely greenfield in this category. Plausible direct lift on retention.
+          </p>
+          <div class="ai-priority-examples">
+            Console management · automated reports · suggested automations · anomaly surfacing · package room organization
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-priority-item">
+        <div class="ai-priority-rank">
+          <span class="ai-priority-rank-num">02</span>
+          Channel multiplier
+        </div>
+        <div>
+          <div class="ai-priority-title">Tools for resellers and installers</div>
+          <p class="ai-priority-body">
+            The Operator uses a low-voltage consultant for install and post-warranty service. He couldn't remember their name. The installer is invisible to the Operator but central to the product's actual deployment. AI that lets a reseller quote, configure, and install ButterflyMX faster compounds across every job they win.
+          </p>
+          <div class="ai-priority-examples">
+            Automated site surveys · quote generation from building plans · install troubleshooting copilot · field service knowledge base
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-priority-item">
+        <div class="ai-priority-rank">
+          <span class="ai-priority-rank-num">03</span>
+          Resident experience — non-security
+        </div>
+        <div>
+          <div class="ai-priority-title">Make the non-security use cases easier for residents</div>
+          <p class="ai-priority-body">
+            The Resident described real confusion about how the elevator integration works and which doors are ButterflyMX versus other systems. In-app help that can actually answer <em>"how do I give the dog walker scheduled access?"</em> using the building's real configuration is a resident-facing AI play that adds value without crossing any sensitive lines. Same for package handoff, visitor flow education, and onboarding.
+          </p>
+          <div class="ai-priority-examples">
+            In-app help and guidance · package handoff workflows · visitor flow walkthroughs · onboarding for new residents
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-priority-item">
+        <div class="ai-priority-rank">
+          <span class="ai-priority-rank-num">04</span>
+          Highest caution
+        </div>
+        <div>
+          <div class="ai-priority-title">Use cases that alter access and security itself</div>
+          <p class="ai-priority-body">
+            Facial recognition at the door, chatbot-handled visitor approval, algorithmic permissioning that bypasses human judgment. The Resident's resistance here was the most articulate position he took in the interview — and he isn't anti-AI in general:
+          </p>
+          <div class="pullquote ted" style="margin: 24px 0; padding: 16px 0 16px 24px;">
+            <div class="pullquote-text" style="font-size: 19px; margin-bottom: 14px;">
+              If someone's coming to get into the building on my behalf, I prefer to have to approve it myself. I don't want some bot to have any authority over that. There's a lot of opportunity for mistakes.
+            </div>
+            <div class="pullquote-attribution">Ted C. · Resident</div>
+          </div>
+          <p class="ai-priority-body">
+            The cost of getting this wrong is asymmetric — surveillance critique damages the category, not just one feature. Move slowly. Keep humans in the loop. The test: does this AI make a decision a resident would otherwise make themselves?
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="implication">
+      <span class="implication-label">Implication for product</span>
+      <div class="implication-text">
+        The line isn't between "AI" and "no AI." It's about <strong>where AI augments operators and residents</strong> versus <strong>where AI starts making access decisions for them.</strong> Compound the first; move with discipline on the second.
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider">
+  <div class="mark">· · ·</div>
+</div>
+
+<section class="about" id="section-9" data-section="9" data-section-name="about">
+  <div class="container">
+    <div class="about-eyebrow">About</div>
+
+    <h2 class="about-headline">
+      About the person who put this together.
+    </h2>
+
+    <p class="about-body">
+      For the last eight years I've been Head of Product at Deako Lighting — a connected-home company that designs and ships its own hardware, firmware, app, and cloud as a single integrated stack. I own the whole arc: I set strategy with the CEO and board, and I build and lead the team that runs execution across product, design, and CX. The strategy and the work that ships it are one job to me, not two.
+    </p>
+
+    <p class="about-body">
+      The center of that work is the full stack, developed end to end — switches and sensors on one end; the app, APIs, and cloud on the other; firmware in between. The decisions I care most about live where those meet: what runs locally versus in the cloud, what has to work without internet, how memory, radio, thermal, and cost constraints shape what the software can promise. Designing products that are elegant, easy to install, and solve real pain points is the discipline I know most deeply.
+    </p>
+
+    <p class="about-body">
+      Hardware is only half of it. Deako sells B2B, B2C, and B2B2C at once, so I've spent years inside the channel dynamics that decide whether a building product gets specified and installed — and the CX to Product feedback loop I built is the same customer-led instinct behind this site. They're the same four user types ButterflyMX serves — residents, operators, installers, and visitors — at a different corner of the same industry.
+    </p>
+
+    <p class="about-body">
+      I'm interviewing for Director, Product Management — Core Access &amp; Security at ButterflyMX because the company's public direction — a category-leading platform expanding from intercom into security cameras, AI, and unified property access — is the work I already do. The proptech adjacency, the installer-experience focus, the connected-hardware and IoT depth, the AI-forward thinking — these aren't ambitions I'm reaching toward. They're my day job.
+    </p>
+
+    <p class="about-body muted">
+      This site exists because I wanted to demonstrate that rather than describe it.
+    </p>
+
+    <div class="about-credentials">
+      <div class="cred-block">
+        <div class="cred-role">Head of Product · Deako Lighting · Sep 2017 – present</div>
+        <div class="cred-title">Own product strategy and the execution that ships it — hardware, firmware, app, and cloud</div>
+        <ul class="cred-list">
+          <li>Scaled the portfolio from ~$70K to ~$31M annual run-rate at ~43% YoY growth</li>
+          <li>Shipped 25M+ units into ~300,000 homes, including a 10M+ modular connector platform that lets non-electricians swap connected hardware in seconds under constant power</li>
+          <li>Ran the full hardware development lifecycle — EVT/DVT/PVT, DFM, contract manufacturing, UL/FCC and NEC compliance — across Thread, Matter, Zigbee, BLE, and Wi-Fi</li>
+          <li>Own the software platform end to end — resident app, cloud, and APIs with OTA and fleet management — across 8–10k new deployments a month at better-than-industry engagement</li>
+          <li>Built and led a product and design team (2–4) and a CS/CX org (4–6) from scratch — managing PMs and designers for eight years — with a CX to Product feedback loop turning install data, support tickets, and reviews into roadmap decisions (~97% CSAT, 4.56★ average product review, NPS ~9)</li>
+          <li>Run a B2B / B2C / B2B2C model — ~85% of revenue through builder, pro, and distributor channels at ~75% gross margin; standardized with America's largest homebuilder</li>
+          <li>Inventor on one issued US patent (US20230419672A1); additional patents pending</li>
+        </ul>
+      </div>
+
+      <div class="cred-block">
+        <div class="cred-role">On AI and emerging hardware as a product domain and a force multiplier</div>
+        <div class="cred-title">Shipped AI and sensor-driven products, and used AI to compress the build cycle itself</div>
+        <ul class="cred-list">
+          <li>Leading Deako Intelligence — a privacy-first, on-device AI platform that learns a household's patterns via mmWave sensing (no cameras) and turns its switches into an intelligent intercom; now in early preview</li>
+          <li>Own R&amp;D strategy for radar, camera, and environmental sensors — sensor fusion and privacy-first architecture</li>
+          <li>Built an AI customer-research engine that turns demographics, pain points, and competitive landscape into product requirements — and deliver full UI mockups and specs to engineering, testing features myself before handoff</li>
+        </ul>
+      </div>
+
+      <div class="cred-block">
+        <div class="cred-role">Director of Program Management · RPI · May 2012 – Sep 2017</div>
+        <div class="cred-title">Three promotions; owned the platform processing 100% of company revenue</div>
+        <ul class="cred-list">
+          <li>~$50M annual revenue, 15,000+ orders/day, 99.95% uptime</li>
+          <li>Delivered enterprise integrations for a Fortune 50 retailer, a major creative software company, and a top consumer photo platform</li>
+          <li>Owned the platform's architecture and schema — how systems communicate and integrate, where customization versus interpretation lives, and the split between order distribution and manufacturing; built to support future M&amp;A and factory onboarding</li>
+        </ul>
+      </div>
+
+      <div class="cred-block">
+        <div class="cred-role">Earlier</div>
+        <div class="cred-title">The smart-home trades are where this started</div>
+        <ul class="cred-list">
+          <li>Process Delivery Manager — True System Designers, a physical security design consulting firm (2008–2010)</li>
+          <li>Custom Low Voltage Technician — Arrausing Sights &amp; Sounds, a custom AV, security &amp; automation integrator (2006–2008)</li>
+          <li>BA, Technology Management — Gettysburg College (computer science, physics, mathematics, management, and psychology combined into one major)</li>
+        </ul>
+      </div>
+
+      <dl class="contact-block">
+        <dt>Email</dt>
+        <dd><a href="mailto:nathan.diehl@outlook.com">nathan.diehl@outlook.com</a></dd>
+        <dt>Phone</dt>
+        <dd><a href="tel:206-293-2054">206-293-2054</a></dd>
+        <dt>LinkedIn</dt>
+        <dd><a href="https://linkedin.com/in/n-diehl" target="_blank" rel="noopener">linkedin.com/in/n-diehl</a></dd>
+        <dt>Location</dt>
+        <dd>Seattle, WA</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+  // Scroll progress indicator
+  let progressEl = document.getElementById('progress');
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        progressEl.style.width = Math.min(100, Math.max(0, scrolled)) + '%';
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+</script>
+
+<!-- ===== BMX discovery analytics (JSONBin event log) ===== -->
+<script>
+(function () {
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+  if (/analytics\.html?$/i.test(location.pathname)) return;
+
+  var params = new URLSearchParams(location.search);
+  try {
+    var ip = params.get('internal') || params.get('notrack');
+    if (ip === '1') localStorage.setItem('bmx-internal', '1');
+    else if (ip === '0') localStorage.removeItem('bmx-internal');
+  } catch (e) {}
+  try { if (localStorage.getItem('bmx-internal') === '1') return; } catch (e) {}
+
+  var BIN = '6a0ddc3b6877513b27a4226c';
+  var KEY = '$2a$10$uU4Abp/DSdXlr/1mZmlmGOKs92CJWNCPBV8hO0fCaIxbZ1r4rEza6';
+  var URL_BASE = 'https://api.jsonbin.io/v3/b/' + BIN;
+
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'v-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  }
+  var visitorId, sessionId;
+  try { visitorId = localStorage.getItem('bmx-visitor') || (localStorage.setItem('bmx-visitor', uuid()), localStorage.getItem('bmx-visitor')); } catch (e) { visitorId = uuid(); }
+  try { sessionId = sessionStorage.getItem('bmx-session') || (sessionStorage.setItem('bmx-session', uuid()), sessionStorage.getItem('bmx-session')); } catch (e) { sessionId = uuid(); }
+
+  var sessionStart = Date.now();
+  var curSection = 1, curName = 'cover', sectionEnter = sessionStart;
+  var maxScroll = 0, scrollMarks = { 25:false, 50:false, 75:false, 100:false };
+  var buffer = [], flushTimer = null, flushing = false;
+
+  function track(action, detail) {
+    buffer.push({
+      ts: Date.now(), visitorId: visitorId, sessionId: sessionId, action: action,
+      section: (detail && detail.section !== undefined) ? detail.section : curSection,
+      detail: detail || {}
+    });
+    if (!flushTimer && !flushing) flushTimer = setTimeout(flush, 4000);
+  }
+
+  function flush(opts) {
+    if (buffer.length === 0) { flushTimer = null; return; }
+    if (flushing) return;
+    flushing = true; flushTimer = null;
+    var events = buffer.splice(0);
+    var keepalive = !!(opts && opts.keepalive);
+    fetch(URL_BASE + '/latest', { headers: { 'X-Access-Key': KEY }, cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var existing = (data && data.record && Array.isArray(data.record.events)) ? data.record.events : [];
+        var merged = existing.concat(events).slice(-5000);
+        var init = { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Access-Key': KEY }, body: JSON.stringify({ events: merged }) };
+        if (keepalive) init.keepalive = true;
+        return fetch(URL_BASE, init);
+      })
+      .catch(function () { for (var i = events.length - 1; i >= 0; i--) buffer.unshift(events[i]); })
+      .finally(function () { flushing = false; if (buffer.length > 0 && !flushTimer) flushTimer = setTimeout(flush, 6000); });
+  }
+
+  track('open', {
+    ua: navigator.userAgent.slice(0, 200),
+    viewport: window.innerWidth + 'x' + window.innerHeight,
+    referrer: (document.referrer || '').slice(0, 200),
+    lang: navigator.language || ''
+  });
+
+  var sections = Array.prototype.slice.call(document.querySelectorAll('section[data-section]'));
+  if ('IntersectionObserver' in window && sections.length) {
+    var visible = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        var id = en.target.getAttribute('data-section');
+        if (en.isIntersecting && en.intersectionRatio >= 0.5) visible[id] = en.intersectionRatio;
+        else delete visible[id];
+      });
+      var bestId = null, bestRatio = 0;
+      Object.keys(visible).forEach(function (id) { if (visible[id] > bestRatio) { bestRatio = visible[id]; bestId = id; } });
+      if (bestId !== null) {
+        var n = parseInt(bestId, 10);
+        if (n !== curSection) {
+          var prev = curSection, dwell = Date.now() - sectionEnter;
+          var el = document.querySelector('section[data-section="' + bestId + '"]');
+          curSection = n; curName = el ? (el.getAttribute('data-section-name') || '') : ''; sectionEnter = Date.now();
+          track('section_view', { section: n, sectionName: curName, prevSection: prev, prevDwellMs: dwell });
+        }
+      }
+    }, { threshold: [0.5] });
+    sections.forEach(function (s) { io.observe(s); });
+  }
+
+  function onScroll() {
+    var doc = document.documentElement;
+    var scrollable = doc.scrollHeight - window.innerHeight;
+    var pct = scrollable > 0 ? Math.round((window.scrollY / scrollable) * 100) : 100;
+    if (pct > maxScroll) maxScroll = pct;
+    [25, 50, 75, 100].forEach(function (m) { if (!scrollMarks[m] && maxScroll >= m) { scrollMarks[m] = true; track('scroll_depth', { pct: m }); } });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    var label = null;
+    if (a.classList && a.classList.contains('summary-finding')) {
+      var m = href.match(/#section-(\d+)/);
+      if (m) label = 'finding-0' + (parseInt(m[1], 10) - 3);
+    } else if (href.indexOf('mailto:') === 0) label = 'email';
+    else if (href.indexOf('tel:') === 0) label = 'phone';
+    else if (/^https?:\/\//i.test(href)) label = /linkedin\.com/i.test(href) ? 'linkedin' : href;
+    if (label) track('click', { section: curSection, label: label, href: href });
+  }, true);
+
+  function onLeave() {
+    track('unload', { section: curSection, sectionDwellMs: Date.now() - sectionEnter, totalMs: Date.now() - sessionStart, maxScrollPct: maxScroll });
+    flush({ keepalive: true });
+  }
+  window.addEventListener('pagehide', onLeave);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') onLeave(); });
+})();
+</script>
+</body>
+</html>

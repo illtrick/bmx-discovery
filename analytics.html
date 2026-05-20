@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMX Discovery — Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+ :root{--canvas:#FAFAF7;--ink:#1a1a1a;--muted:#6b6b66;--line:#e6e4dc;--purple:#7241F6;--card:#fff}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--canvas);color:var(--ink);font-family:'Geist',system-ui,sans-serif;font-size:15px;line-height:1.55}
+ .wrap{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
+ h1{font-family:'Newsreader',Georgia,serif;font-weight:600;font-size:30px;margin:0 0 2px}
+ .sub{color:var(--muted);font-family:'Geist Mono',monospace;font-size:12px;margin-bottom:24px}
+ .bar{display:flex;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap}
+ button{font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.04em;padding:7px 14px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer}
+ button:hover{border-color:var(--purple);color:var(--purple)}
+ .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
+ .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+ .card .n{font-family:'Newsreader',serif;font-size:30px;font-weight:600;line-height:1}
+ .card .l{font-family:'Geist Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:6px}
+ h2{font-family:'Geist Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:30px 0 10px;font-weight:500}
+ table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+ th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line)}
+ th{font-family:'Geist Mono',monospace;font-weight:500;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:#faf8f2}
+ tr:last-child td{border-bottom:none}
+ td.num{font-variant-numeric:tabular-nums;text-align:right}
+ .barcell{position:relative}
+ .barfill{position:absolute;left:0;top:0;bottom:0;background:rgba(114,65,246,.12)}
+ .barcell span{position:relative}
+ .empty{color:var(--muted);font-family:'Geist Mono',monospace;font-size:13px;padding:30px 0}
+ .mono{font-family:'Geist Mono',monospace;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>BMX Discovery — Analytics</h1>
+  <div class="sub" id="sub">loading…</div>
+  <div class="bar">
+    <button id="refresh">&#8635; Refresh</button>
+    <button id="csv">&#8595; Export CSV</button>
+    <span class="mono" id="updated"></span>
+  </div>
+  <div id="content"><div class="empty">Loading events…</div></div>
+</div>
+<script>
+  var BIN = '6a0ddc3b6877513b27a4226c';
+  var KEY = '$2a$10$uU4Abp/DSdXlr/1mZmlmGOKs92CJWNCPBV8hO0fCaIxbZ1r4rEza6';
+  var API = 'https://api.jsonbin.io/v3/b/' + BIN + '/latest';
+
+  var SECTIONS = [[1,'cover'],[2,'methodology'],[3,'summary'],[4,'pm-channel'],[5,'integrated-suite'],[6,'user-behavior'],[7,'package-opportunity'],[8,'ai-strategy'],[9,'about']];
+  var allEvents = [];
+
+  function fmtMs(ms){ if(!ms||ms<0) return '—'; var s=Math.round(ms/1000); if(s<60) return s+'s'; return Math.floor(s/60)+'m '+(s%60)+'s'; }
+  function median(a){ if(!a.length) return 0; var b=a.slice().sort(function(x,y){return x-y;}); var m=Math.floor(b.length/2); return b.length%2?b[m]:(b[m-1]+b[m])/2; }
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function card(n,l){ return '<div class="card"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+
+  function load(){
+    document.getElementById('updated').textContent='refreshing…';
+    fetch(API,{headers:{'X-Access-Key':KEY},cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        allEvents=(data&&data.record&&Array.isArray(data.record.events))?data.record.events:[];
+        allEvents.sort(function(a,b){return a.ts-b.ts;});
+        document.getElementById('updated').textContent='updated '+new Date().toLocaleTimeString();
+        render();
+      })
+      .catch(function(e){ document.getElementById('updated').textContent='error: '+e.message; });
+  }
+
+  function render(){
+    var sessions={}, visitors={}, dwellSum={}, dwellN={}, reach={}, scrollHit={25:{},50:{},75:{},100:{}}, totalMs={}, clicks=[];
+    SECTIONS.forEach(function(s){ dwellSum[s[0]]=0; dwellN[s[0]]=0; reach[s[0]]={}; });
+    allEvents.forEach(function(ev){
+      if(ev.sessionId) sessions[ev.sessionId]=1;
+      if(ev.visitorId) visitors[ev.visitorId]=1;
+      if(ev.section!=null && reach[ev.section]) reach[ev.section][ev.sessionId]=1;
+      var d=ev.detail||{};
+      if(ev.action==='section_view'){
+        if(d.prevSection!=null && dwellSum[d.prevSection]!=null && typeof d.prevDwellMs==='number'){ dwellSum[d.prevSection]+=d.prevDwellMs; dwellN[d.prevSection]++; }
+      } else if(ev.action==='unload'){
+        if(ev.section!=null && dwellSum[ev.section]!=null && typeof d.sectionDwellMs==='number'){ dwellSum[ev.section]+=d.sectionDwellMs; dwellN[ev.section]++; }
+        if(typeof d.totalMs==='number') totalMs[ev.sessionId]=d.totalMs;
+      } else if(ev.action==='scroll_depth'){ if(scrollHit[d.pct]) scrollHit[d.pct][ev.sessionId]=1; }
+      else if(ev.action==='click'){ clicks.push(ev); }
+    });
+    var nSessions=Object.keys(sessions).length, nVisitors=Object.keys(visitors).length;
+    var times=Object.keys(totalMs).map(function(k){return totalMs[k];});
+    var avgTime=times.length?times.reduce(function(a,b){return a+b;},0)/times.length:0;
+
+    var html='<div class="cards">';
+    html+=card(nVisitors,'unique visitors')+card(nSessions,'sessions')+card(clicks.length,'clicks')+card(fmtMs(avgTime),'avg time on page')+card(fmtMs(median(times)),'median time')+'</div>';
+
+    html+='<h2>Sections — reach &amp; time</h2><table><thead><tr><th>#</th><th>section</th><th class="num">reached</th><th class="num">avg time</th></tr></thead><tbody>';
+    SECTIONS.forEach(function(s){
+      var r=Object.keys(reach[s[0]]).length, pct=nSessions?Math.round(r/nSessions*100):0, avg=dwellN[s[0]]?dwellSum[s[0]]/dwellN[s[0]]:0;
+      html+='<tr><td class="num">'+s[0]+'</td><td>'+s[1]+'</td><td class="num barcell"><div class="barfill" style="width:'+pct+'%"></div><span>'+r+' ('+pct+'%)</span></td><td class="num">'+fmtMs(avg)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+
+    html+='<h2>Scroll depth</h2><table><thead><tr><th>milestone</th><th class="num">sessions</th><th class="num">%</th></tr></thead><tbody>';
+    [25,50,75,100].forEach(function(m){ var c=Object.keys(scrollHit[m]).length, pct=nSessions?Math.round(c/nSessions*100):0; html+='<tr><td>'+m+'%</td><td class="num barcell"><div class="barfill" style="width:'+pct+'%"></div><span>'+c+'</span></td><td class="num">'+pct+'%</td></tr>'; });
+    html+='</tbody></table>';
+
+    html+='<h2>Click log ('+clicks.length+')</h2>';
+    if(!clicks.length){ html+='<div class="empty">No clicks yet.</div>'; }
+    else{
+      html+='<table><thead><tr><th>time</th><th>label</th><th>href</th><th class="num">section</th><th>visitor</th></tr></thead><tbody>';
+      clicks.slice().reverse().forEach(function(ev){ var d=ev.detail||{}; html+='<tr><td class="mono">'+new Date(ev.ts).toLocaleString()+'</td><td>'+esc(d.label)+'</td><td class="mono">'+esc(d.href)+'</td><td class="num">'+esc(ev.section)+'</td><td class="mono">'+esc((ev.visitorId||'').slice(0,8))+'</td></tr>'; });
+      html+='</tbody></table>';
+    }
+    document.getElementById('content').innerHTML=html;
+    document.getElementById('sub').textContent=allEvents.length+' events · bin '+BIN.slice(0,8)+'…';
+  }
+
+  function exportCsv(){
+    var headers=['ts_iso','action','section','visitorId','sessionId','label','href','sectionName','prevSection','prevDwellMs','sectionDwellMs','totalMs','maxScrollPct','pct','ua','viewport','referrer','lang'];
+    var rows=[headers.join(',')];
+    allEvents.forEach(function(ev){ var d=ev.detail||{}; var row=[new Date(ev.ts).toISOString(),ev.action,ev.section,ev.visitorId,ev.sessionId,d.label,d.href,d.sectionName,d.prevSection,d.prevDwellMs,d.sectionDwellMs,d.totalMs,d.maxScrollPct,d.pct,d.ua,d.viewport,d.referrer,d.lang]; rows.push(row.map(function(v){ if(v==null) return ''; v=String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(',')); });
+    var blob=new Blob([rows.join('\n')],{type:'text/csv'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bmx-analytics-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  }
+
+  document.getElementById('refresh').addEventListener('click',load);
+  document.getElementById('csv').addEventListener('click',exportCsv);
+  load();
+</script>
+</body>
+</html>
