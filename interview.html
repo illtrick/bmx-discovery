@@ -1449,6 +1449,25 @@
     lang: navigator.language || ''
   });
 
+  // ----- region/geo enrichment (one client-side IP-geo lookup per session; no raw IP stored) -----
+  (function enrichGeo() {
+    try { if (sessionStorage.getItem('bmx-geo')) return; } catch (e) {}
+    function save(g) {
+      var geo = { country: g.country || '', region: g.region || '', city: g.city || '' };
+      try { sessionStorage.setItem('bmx-geo', JSON.stringify(geo)); } catch (e) {}
+      track('geo', geo);
+    }
+    fetch('https://ipwho.is/', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (g) { if (g && g.success !== false && (g.country || g.city)) save(g); else throw 0; })
+      .catch(function () {
+        fetch('https://get.geojs.io/v1/ip/geo.json', { cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .then(function (g) { if (g && (g.country || g.city)) save(g); })
+          .catch(function () {});
+      });
+  })();
+
   var sections = Array.prototype.slice.call(document.querySelectorAll('section[data-section]'));
   if ('IntersectionObserver' in window && sections.length) {
     var visible = {};
