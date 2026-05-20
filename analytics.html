@@ -32,6 +32,20 @@
  .barcell span{position:relative}
  .empty{color:var(--muted);font-family:'Geist Mono',monospace;font-size:13px;padding:30px 0}
  .mono{font-family:'Geist Mono',monospace;font-size:12px}
+ tr.srow{cursor:pointer}
+ tr.srow:hover td{background:rgba(114,65,246,.06)}
+ .danger{border-color:#E6153A;color:#E6153A}
+ .danger:hover{background:#E6153A;color:#fff;border-color:#E6153A}
+ .modal{position:fixed;inset:0;background:rgba(20,20,20,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:50}
+ .modal.open{display:flex}
+ .modal-panel{background:var(--canvas);border:1px solid var(--line);border-radius:14px;max-width:760px;width:100%;padding:24px 26px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+ .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:6px}
+ .modal-head h3{font-family:'Newsreader',serif;font-weight:600;font-size:22px;margin:0}
+ .modal-meta{font-family:'Geist Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;word-break:break-word}
+ .modal-actions{display:flex;gap:10px;margin-top:18px}
+ .tl td{vertical-align:top}
+ .tl .t{white-space:nowrap;color:var(--muted)}
+ .tag{display:inline-block;font-family:'Geist Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:5px;background:#efece3}
 </style>
 </head>
 <body>
@@ -45,6 +59,7 @@
   </div>
   <div id="content"><div class="empty">Loading events…</div></div>
 </div>
+<div class="modal" id="modal"><div class="modal-panel" id="modal-panel"></div></div>
 <script>
   var BIN = '6a0ddc3b6877513b27a4226c';
   var KEY = '$2a$10$uU4Abp/DSdXlr/1mZmlmGOKs92CJWNCPBV8hO0fCaIxbZ1r4rEza6';
@@ -52,6 +67,7 @@
 
   var SECTIONS = [[1,'cover'],[2,'methodology'],[3,'summary'],[4,'pm-channel'],[5,'integrated-suite'],[6,'user-behavior'],[7,'package-opportunity'],[8,'ai-strategy'],[9,'about']];
   var allEvents = [];
+  var sessionsData = {};
 
   function fmtMs(ms){ if(!ms||ms<0) return '—'; var s=Math.round(ms/1000); if(s<60) return s+'s'; return Math.floor(s/60)+'m '+(s%60)+'s'; }
   function median(a){ if(!a.length) return 0; var b=a.slice().sort(function(x,y){return x-y;}); var m=Math.floor(b.length/2); return b.length%2?b[m]:(b[m-1]+b[m])/2; }
@@ -72,10 +88,10 @@
   }
 
   function render(){
-    var sessions={}, visitors={}, dwellSum={}, dwellN={}, reach={}, scrollHit={25:{},50:{},75:{},100:{}}, totalMs={}, clicks=[], geoBySession={};
+    var sessions={}, visitors={}, dwellSum={}, dwellN={}, reach={}, scrollHit={25:{},50:{},75:{},100:{}}, totalMs={}, clicks=[], geoBySession={}, bySession={};
     SECTIONS.forEach(function(s){ dwellSum[s[0]]=0; dwellN[s[0]]=0; reach[s[0]]={}; });
     allEvents.forEach(function(ev){
-      if(ev.sessionId) sessions[ev.sessionId]=1;
+      if(ev.sessionId){ sessions[ev.sessionId]=1; (bySession[ev.sessionId]=bySession[ev.sessionId]||[]).push(ev); }
       if(ev.visitorId) visitors[ev.visitorId]=1;
       if(ev.section!=null && reach[ev.section]) reach[ev.section][ev.sessionId]=1;
       var d=ev.detail||{};
@@ -94,6 +110,26 @@
 
     var html='<div class="cards">';
     html+=card(nVisitors,'unique visitors')+card(nSessions,'sessions')+card(clicks.length,'clicks')+card(fmtMs(avgTime),'avg time on page')+card(fmtMs(median(times)),'median time')+'</div>';
+
+    sessionsData=bySession;
+    var sessIds=Object.keys(bySession).sort(function(a,b){return bySession[b][0].ts - bySession[a][0].ts;});
+    html+='<h2>Sessions ('+sessIds.length+') — click a row for the full timeline</h2>';
+    if(!sessIds.length){ html+='<div class="empty">No sessions yet.</div>'; }
+    else{
+      html+='<table><thead><tr><th>started</th><th>visitor</th><th>region</th><th class="num">duration</th><th class="num">max scroll</th><th class="num">sections</th><th class="num">clicks</th></tr></thead><tbody>';
+      sessIds.forEach(function(sid){
+        var evs=bySession[sid], start=evs[0].ts, visitor=(evs[0].visitorId||'').slice(0,8);
+        var g=geoBySession[sid]; var region=g?[g.city,g.region,g.country].filter(Boolean).join(', '):''; if(!region) region='—';
+        var unload=null; for(var i=evs.length-1;i>=0;i--){ if(evs[i].action==='unload'){ unload=evs[i]; break; } }
+        var ud=(unload&&unload.detail)||{};
+        var dur=typeof ud.totalMs==='number'?ud.totalMs:(evs[evs.length-1].ts-start);
+        var ms=typeof ud.maxScrollPct==='number'?ud.maxScrollPct:0; if(!ms) evs.forEach(function(e){ if(e.action==='scroll_depth'&&(e.detail||{}).pct>ms) ms=e.detail.pct; });
+        var secs={}; evs.forEach(function(e){ if(e.section!=null) secs[e.section]=1; });
+        var clk=evs.filter(function(e){return e.action==='click';}).length;
+        html+='<tr class="srow" data-sid="'+esc(sid)+'"><td class="mono">'+new Date(start).toLocaleString()+'</td><td class="mono">'+esc(visitor)+'</td><td>'+esc(region)+'</td><td class="num">'+fmtMs(dur)+'</td><td class="num">'+ms+'%</td><td class="num">'+Object.keys(secs).length+'</td><td class="num">'+clk+'</td></tr>';
+      });
+      html+='</tbody></table>';
+    }
 
     html+='<h2>Sections — reach &amp; time</h2><table><thead><tr><th>#</th><th>section</th><th class="num">reached</th><th class="num">avg time</th></tr></thead><tbody>';
     SECTIONS.forEach(function(s){
@@ -133,8 +169,56 @@
     var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bmx-analytics-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
   }
 
+  function describeEvent(ev){
+    var d=ev.detail||{};
+    switch(ev.action){
+      case 'open': return 'viewport '+esc(d.viewport||'?')+' · lang '+esc(d.lang||'?')+(d.referrer?(' · ref '+esc(d.referrer)):' · direct');
+      case 'geo': return [d.city,d.region,d.country].filter(Boolean).map(esc).join(', ')||'(no geo)';
+      case 'section_view': return '→ '+esc(d.sectionName||('section '+d.section))+' (prev dwell '+fmtMs(d.prevDwellMs)+')';
+      case 'scroll_depth': return 'reached '+esc(d.pct)+'%';
+      case 'click': return esc(d.label)+(d.href?(' — '+esc(d.href)):'');
+      case 'unload': return 'left at section '+esc(ev.section)+' · total '+fmtMs(d.totalMs)+' · max scroll '+esc(d.maxScrollPct)+'%';
+      default: return '';
+    }
+  }
+  function openSession(sid){
+    var evs=sessionsData[sid]; if(!evs||!evs.length) return;
+    var start=evs[0].ts, visitor=evs[0].visitorId||'?', g=null, ua='';
+    evs.forEach(function(e){ if(e.action==='geo') g=e.detail; if(e.action==='open') ua=(e.detail||{}).ua||''; });
+    var region=g?[g.city,g.region,g.country].filter(Boolean).join(', '):'unknown';
+    var rows='';
+    evs.forEach(function(e){ rows+='<tr><td class="t mono">+'+Math.round((e.ts-start)/1000)+'s</td><td><span class="tag">'+esc(e.action)+'</span></td><td>'+describeEvent(e)+'</td></tr>'; });
+    var html='<div class="modal-head"><h3>Session '+esc(sid.slice(0,8))+'…</h3><button id="m-close">✕ Close</button></div>'
+      +'<div class="modal-meta">visitor '+esc((visitor||'').slice(0,12))+' · '+esc(region)+'<br>started '+new Date(start).toLocaleString()+' · '+evs.length+' events'+(ua?('<br>'+esc(ua)):'')+'</div>'
+      +'<table class="tl"><thead><tr><th>t</th><th>event</th><th>detail</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<div class="modal-actions"><button class="danger" id="m-del">Delete this session</button><button id="m-close2">Close</button></div>';
+    document.getElementById('modal-panel').innerHTML=html;
+    document.getElementById('modal').classList.add('open');
+    document.getElementById('m-close').addEventListener('click',closeModal);
+    document.getElementById('m-close2').addEventListener('click',closeModal);
+    document.getElementById('m-del').addEventListener('click',function(){ deleteSession(sid); });
+  }
+  function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+  function deleteSession(sid){
+    var evs=sessionsData[sid]||[];
+    if(!confirm('Delete this session ('+evs.length+' events) permanently from the bin? This cannot be undone.')) return;
+    var btn=document.getElementById('m-del'); if(btn){ btn.textContent='deleting…'; btn.disabled=true; }
+    fetch(API,{headers:{'X-Access-Key':KEY},cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var ev=(data&&data.record&&Array.isArray(data.record.events))?data.record.events:[];
+        var kept=ev.filter(function(e){return e.sessionId!==sid;});
+        return fetch('https://api.jsonbin.io/v3/b/'+BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':KEY},body:JSON.stringify({events:kept})});
+      })
+      .then(function(){ closeModal(); load(); })
+      .catch(function(e){ alert('Delete failed: '+e.message); if(btn){ btn.textContent='Delete this session'; btn.disabled=false; } });
+  }
+
   document.getElementById('refresh').addEventListener('click',load);
   document.getElementById('csv').addEventListener('click',exportCsv);
+  document.getElementById('content').addEventListener('click',function(e){ var row=e.target.closest&&e.target.closest('[data-sid]'); if(row) openSession(row.getAttribute('data-sid')); });
+  document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
   load();
 </script>
 </body>
