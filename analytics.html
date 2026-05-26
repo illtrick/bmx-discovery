@@ -61,9 +61,14 @@
 </div>
 <div class="modal" id="modal"><div class="modal-panel" id="modal-panel"></div></div>
 <script>
-  var BIN = '6a0ddc3b6877513b27a4226c';
-  var KEY = '$2a$10$uU4Abp/DSdXlr/1mZmlmGOKs92CJWNCPBV8hO0fCaIxbZ1r4rEza6';
-  var API = 'https://api.jsonbin.io/v3/b/' + BIN + '/latest';
+  var WORKER_URL = 'https://bmx-analytics.butterflymx.workers.dev';
+  function getToken() {
+    try { var t = localStorage.getItem('bmx-dash-token'); if (t) return t; } catch (e) {}
+    var t2 = window.prompt('Dashboard token:');
+    if (t2) { try { localStorage.setItem('bmx-dash-token', t2); } catch (e) {} }
+    return t2 || '';
+  }
+  function clearToken() { try { localStorage.removeItem('bmx-dash-token'); } catch (e) {} }
 
   var SECTIONS = [[1,'cover'],[2,'methodology'],[3,'summary'],[4,'pm-channel'],[5,'integrated-suite'],[6,'user-behavior'],[7,'package-opportunity'],[8,'ai-strategy'],[9,'about']];
   var allEvents = [];
@@ -75,11 +80,17 @@
   function card(n,l){ return '<div class="card"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
 
   function load(){
+    var token=getToken();
+    if(!token){ document.getElementById('content').innerHTML='<div class="empty">No token entered. <a href="#" id="retry">Try again</a></div>'; var r=document.getElementById('retry'); if(r) r.addEventListener('click',function(e){e.preventDefault();clearToken();load();}); return; }
     document.getElementById('updated').textContent='refreshing…';
-    fetch(API,{headers:{'X-Access-Key':KEY},cache:'no-store'})
-      .then(function(r){return r.json();})
+    fetch(WORKER_URL+'/events',{headers:{'Authorization':'Bearer '+token},cache:'no-store'})
+      .then(function(r){
+        if(r.status===401){ clearToken(); throw new Error('unauthorized — token cleared, click Refresh to re-enter'); }
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return r.json();
+      })
       .then(function(data){
-        allEvents=(data&&data.record&&Array.isArray(data.record.events))?data.record.events:[];
+        allEvents=(data&&Array.isArray(data.events))?data.events:[];
         allEvents.sort(function(a,b){return a.ts-b.ts;});
         document.getElementById('updated').textContent='updated '+new Date().toLocaleTimeString();
         render();
@@ -158,7 +169,7 @@
       html+='</tbody></table>';
     }
     document.getElementById('content').innerHTML=html;
-    document.getElementById('sub').textContent=allEvents.length+' events · bin '+BIN.slice(0,8)+'…';
+    document.getElementById('sub').textContent=allEvents.length+' events · worker';
   }
 
   function exportCsv(){
@@ -201,15 +212,11 @@
   function closeModal(){ document.getElementById('modal').classList.remove('open'); }
   function deleteSession(sid){
     var evs=sessionsData[sid]||[];
-    if(!confirm('Delete this session ('+evs.length+' events) permanently from the bin? This cannot be undone.')) return;
+    if(!confirm('Delete this session ('+evs.length+' events) permanently? This cannot be undone.')) return;
     var btn=document.getElementById('m-del'); if(btn){ btn.textContent='deleting…'; btn.disabled=true; }
-    fetch(API,{headers:{'X-Access-Key':KEY},cache:'no-store'})
-      .then(function(r){return r.json();})
-      .then(function(data){
-        var ev=(data&&data.record&&Array.isArray(data.record.events))?data.record.events:[];
-        var kept=ev.filter(function(e){return e.sessionId!==sid;});
-        return fetch('https://api.jsonbin.io/v3/b/'+BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':KEY},body:JSON.stringify({events:kept})});
-      })
+    var token=getToken();
+    fetch(WORKER_URL+'/session/'+encodeURIComponent(sid),{method:'DELETE',headers:{'Authorization':'Bearer '+token}})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
       .then(function(){ closeModal(); load(); })
       .catch(function(e){ alert('Delete failed: '+e.message); if(btn){ btn.textContent='Delete this session'; btn.disabled=false; } });
   }
