@@ -1404,6 +1404,10 @@
   } catch (e) {}
   try { if (localStorage.getItem('bmx-internal') === '1') return; } catch (e) {}
 
+  // Drop known automation / link-preview crawlers before doing any work.
+  if (navigator.webdriver === true) return;
+  if (/\b(bot|crawl|spider|preview|slurp|lighthouse|headless|googlebot|bingbot|facebookexternalhit|linkedinbot|slackbot|twitterbot|discordbot|telegrambot|whatsapp)\b/i.test(navigator.userAgent || '')) return;
+
   var WORKER_URL = 'https://bmx-analytics.butterflymx.workers.dev';
 
   function uuid() {
@@ -1452,16 +1456,38 @@
     flushing = true; flushTimer = null;
     var events = buffer.splice(0);
     var keepalive = !!(opts && opts.keepalive);
+    var body = JSON.stringify({ events: events });
+
+    // For unload flushes, sendBeacon is the most reliable path across browsers
+    // (esp. mobile Safari, where fetch+keepalive often drops the final batch).
+    if (keepalive && navigator.sendBeacon && body.length < 60000) {
+      try {
+        var queued = navigator.sendBeacon(
+          WORKER_URL + '/event',
+          new Blob([body], { type: 'application/json' })
+        );
+        if (queued) { flushing = false; return; }
+      } catch (e) { /* fall through to fetch */ }
+    }
+
+    // 10 s hard timeout — a hanging request must not permanently lock the flusher.
+    var ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var t = ac ? setTimeout(function () { ac.abort(); }, 10000) : null;
     var init = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ events: events })
+      body: body
     };
+    if (ac) init.signal = ac.signal;
     if (keepalive) init.keepalive = true;
     fetch(WORKER_URL + '/event', init)
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); })
       .catch(function () { for (var i = events.length - 1; i >= 0; i--) buffer.unshift(events[i]); })
-      .finally(function () { flushing = false; if (buffer.length > 0 && !flushTimer) flushTimer = setTimeout(flush, 6000); });
+      .finally(function () {
+        if (t) clearTimeout(t);
+        flushing = false;
+        if (buffer.length > 0 && !flushTimer) flushTimer = setTimeout(flush, 6000);
+      });
   }
 
   track('open', {
@@ -1523,15 +1549,21 @@
     if (label) track('click', { section: curSection, label: label, href: href });
   }, true);
 
+  // Idempotent: pagehide + visibilitychange→hidden both fire on tab close.
+  // Record one unload per session; still flush pending events on every leave.
+  var left = false;
   function onLeave() {
-    track('unload', {
-      section: curSection,
-      sectionDwellMs: Date.now() - sectionEnter,
-      totalMs: Date.now() - sessionStart,
-      visibleMs: visibleSnapshot(),
-      maxScrollPct: maxScroll,
-      tag: tag || ''
-    });
+    if (!left) {
+      left = true;
+      track('unload', {
+        section: curSection,
+        sectionDwellMs: Date.now() - sectionEnter,
+        totalMs: Date.now() - sessionStart,
+        visibleMs: visibleSnapshot(),
+        maxScrollPct: maxScroll,
+        tag: tag || ''
+      });
+    }
     flush({ keepalive: true });
   }
   window.addEventListener('pagehide', onLeave);
