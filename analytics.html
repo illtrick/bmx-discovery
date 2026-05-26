@@ -79,6 +79,39 @@
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function card(n,l){ return '<div class="card"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
 
+  function parseUA(ua){
+    ua = ua || ''; var os='?', device='?', m;
+    if (/iPhone/.test(ua)) { device='iPhone'; m=ua.match(/iPhone OS (\d+)[_\.]?(\d+)?/); os='iOS '+(m?m[1]+(m[2]?'.'+m[2]:''):''); }
+    else if (/iPad/.test(ua)) { device='iPad'; m=ua.match(/OS (\d+)[_\.]?(\d+)?/); os='iPadOS '+(m?m[1]+(m[2]?'.'+m[2]:''):''); }
+    else if (/Macintosh/.test(ua)) { device='Mac'; m=ua.match(/Mac OS X (\d+)[_\.](\d+)/); os='macOS '+(m?m[1]+'.'+m[2]:''); }
+    else if (/Windows NT/.test(ua)) { device='Windows'; m=ua.match(/Windows NT (\d+\.\d+)/); var v=m?m[1]:''; var wm={'10.0':'10/11','6.3':'8.1','6.2':'8','6.1':'7'}; os=wm[v]||('NT '+v); }
+    else if (/Android/.test(ua)) { m=ua.match(/Android (\d+(?:\.\d+)?)/); os='Android '+(m?m[1]:''); var dm=ua.match(/;\s*([^;)]*?)\s*(?:Build|;|\))/); device=(dm?dm[1].trim():'Android').replace(/Linux U.*|wv/,'').trim()||'Android'; }
+    else if (/CrOS/.test(ua)) { device='ChromeOS'; os='ChromeOS'; }
+    else if (/Linux/.test(ua)) { device='Linux'; os='Linux'; }
+    var br='?';
+    if (/CriOS\/(\d+)/.test(ua)) br='Chrome '+RegExp.$1;
+    else if (/FxiOS\/(\d+)/.test(ua)) br='Firefox '+RegExp.$1;
+    else if (/Edg\/(\d+)/.test(ua)) br='Edge '+RegExp.$1;
+    else if (/OPR\/(\d+)/.test(ua)) br='Opera '+RegExp.$1;
+    else if (/Firefox\/(\d+)/.test(ua)) br='Firefox '+RegExp.$1;
+    else if (/Chrome\/(\d+)/.test(ua) && !/Edg|OPR/.test(ua)) br='Chrome '+RegExp.$1;
+    else if (/Version\/(\d+)[\.\d]* Safari/.test(ua)) br='Safari '+RegExp.$1;
+    return { device: device, os: os, browser: br };
+  }
+  function findEv(evs, action){ for (var i=0;i<evs.length;i++) if (evs[i].action===action) return evs[i]; return null; }
+  function findCf(evs){ for (var i=0;i<evs.length;i++) if (evs[i].cf) return evs[i].cf; return null; }
+  function sessionMeta(evs){
+    var oD=(findEv(evs,'open')||{}).detail||{};
+    var uD=(findEv(evs,'unload')||{}).detail||{};
+    return {
+      cf: findCf(evs),
+      ua: oD.ua||'', viewport: oD.viewport||'', dpr: oD.dpr||null, screen: oD.screen||'',
+      referrer: oD.referrer||'', lang: oD.lang||'',
+      tag: oD.tag||uD.tag||'',
+      visibleMs: (typeof uD.visibleMs==='number')?uD.visibleMs:null
+    };
+  }
+
   function load(){
     var token=getToken();
     if(!token){ document.getElementById('content').innerHTML='<div class="empty">No token entered. <a href="#" id="retry">Try again</a></div>'; var r=document.getElementById('retry'); if(r) r.addEventListener('click',function(e){e.preventDefault();clearToken();load();}); return; }
@@ -99,7 +132,7 @@
   }
 
   function render(){
-    var sessions={}, visitors={}, dwellSum={}, dwellN={}, reach={}, scrollHit={25:{},50:{},75:{},100:{}}, totalMs={}, clicks=[], geoBySession={}, bySession={};
+    var sessions={}, visitors={}, dwellSum={}, dwellN={}, reach={}, scrollHit={25:{},50:{},75:{},100:{}}, totalMs={}, visibleMsBy={}, clicks=[], bySession={};
     SECTIONS.forEach(function(s){ dwellSum[s[0]]=0; dwellN[s[0]]=0; reach[s[0]]={}; });
     allEvents.forEach(function(ev){
       if(ev.sessionId){ sessions[ev.sessionId]=1; (bySession[ev.sessionId]=bySession[ev.sessionId]||[]).push(ev); }
@@ -111,33 +144,43 @@
       } else if(ev.action==='unload'){
         if(ev.section!=null && dwellSum[ev.section]!=null && typeof d.sectionDwellMs==='number'){ dwellSum[ev.section]+=d.sectionDwellMs; dwellN[ev.section]++; }
         if(typeof d.totalMs==='number') totalMs[ev.sessionId]=d.totalMs;
+        if(typeof d.visibleMs==='number') visibleMsBy[ev.sessionId]=d.visibleMs;
       } else if(ev.action==='scroll_depth'){ if(scrollHit[d.pct]) scrollHit[d.pct][ev.sessionId]=1; }
       else if(ev.action==='click'){ clicks.push(ev); }
-      else if(ev.action==='geo'){ geoBySession[ev.sessionId]=d; }
     });
     var nSessions=Object.keys(sessions).length, nVisitors=Object.keys(visitors).length;
     var times=Object.keys(totalMs).map(function(k){return totalMs[k];});
     var avgTime=times.length?times.reduce(function(a,b){return a+b;},0)/times.length:0;
+    var actives=Object.keys(visibleMsBy).map(function(k){return visibleMsBy[k];});
+    var avgActive=actives.length?actives.reduce(function(a,b){return a+b;},0)/actives.length:0;
 
     var html='<div class="cards">';
-    html+=card(nVisitors,'unique visitors')+card(nSessions,'sessions')+card(clicks.length,'clicks')+card(fmtMs(avgTime),'avg time on page')+card(fmtMs(median(times)),'median time')+'</div>';
+    html+=card(nVisitors,'unique visitors')+card(nSessions,'sessions')+card(clicks.length,'clicks')+card(fmtMs(avgTime),'avg time')+card(fmtMs(avgActive),'avg active')+'</div>';
 
     sessionsData=bySession;
     var sessIds=Object.keys(bySession).sort(function(a,b){return bySession[b][0].ts - bySession[a][0].ts;});
     html+='<h2>Sessions ('+sessIds.length+') — click a row for the full timeline</h2>';
     if(!sessIds.length){ html+='<div class="empty">No sessions yet.</div>'; }
     else{
-      html+='<table><thead><tr><th>started</th><th>visitor</th><th>region</th><th class="num">duration</th><th class="num">max scroll</th><th class="num">sections</th><th class="num">clicks</th></tr></thead><tbody>';
+      html+='<table><thead><tr><th>started</th><th>tag</th><th>device</th><th>ISP</th><th>location</th><th class="num">total &middot; active</th><th class="num">scroll</th><th class="num">sec</th><th class="num">clk</th></tr></thead><tbody>';
       sessIds.forEach(function(sid){
-        var evs=bySession[sid], start=evs[0].ts, visitor=(evs[0].visitorId||'').slice(0,8);
-        var g=geoBySession[sid]; var region=g?[g.city,g.region,g.country].filter(Boolean).join(', '):''; if(!region) region='—';
+        var evs=bySession[sid], start=evs[0].ts;
+        var meta=sessionMeta(evs);
+        var dev=parseUA(meta.ua);
+        var cf=meta.cf||{};
+        var loc=[cf.city, cf.regionCode||cf.region, cf.country].filter(Boolean).join(', ')||'—';
+        var isp=cf.asOrganization||'—';
         var unload=null; for(var i=evs.length-1;i>=0;i--){ if(evs[i].action==='unload'){ unload=evs[i]; break; } }
         var ud=(unload&&unload.detail)||{};
         var dur=typeof ud.totalMs==='number'?ud.totalMs:(evs[evs.length-1].ts-start);
+        var act=typeof ud.visibleMs==='number'?ud.visibleMs:null;
         var ms=typeof ud.maxScrollPct==='number'?ud.maxScrollPct:0; if(!ms) evs.forEach(function(e){ if(e.action==='scroll_depth'&&(e.detail||{}).pct>ms) ms=e.detail.pct; });
         var secs={}; evs.forEach(function(e){ if(e.section!=null) secs[e.section]=1; });
         var clk=evs.filter(function(e){return e.action==='click';}).length;
-        html+='<tr class="srow" data-sid="'+esc(sid)+'"><td class="mono">'+new Date(start).toLocaleString()+'</td><td class="mono">'+esc(visitor)+'</td><td>'+esc(region)+'</td><td class="num">'+fmtMs(dur)+'</td><td class="num">'+ms+'%</td><td class="num">'+Object.keys(secs).length+'</td><td class="num">'+clk+'</td></tr>';
+        var tagCell=meta.tag?'<span class="tag">'+esc(meta.tag)+'</span>':'<span style="color:var(--muted)">—</span>';
+        var devCell=esc(dev.device)+' &middot; '+esc(dev.os)+' &middot; '+esc(dev.browser);
+        var actCell=fmtMs(dur)+(act!=null?' &middot; '+fmtMs(act):'');
+        html+='<tr class="srow" data-sid="'+esc(sid)+'"><td class="mono">'+new Date(start).toLocaleString()+'</td><td>'+tagCell+'</td><td>'+devCell+'</td><td>'+esc(isp)+'</td><td>'+esc(loc)+'</td><td class="num mono">'+actCell+'</td><td class="num">'+ms+'%</td><td class="num">'+Object.keys(secs).length+'</td><td class="num">'+clk+'</td></tr>';
       });
       html+='</tbody></table>';
     }
@@ -154,7 +197,12 @@
     html+='</tbody></table>';
 
     var regionCounts={};
-    Object.keys(sessions).forEach(function(sid){ var g=geoBySession[sid]; var label=g?[g.city,g.region,g.country].filter(Boolean).join(', '):''; if(!label) label='(unknown)'; regionCounts[label]=(regionCounts[label]||0)+1; });
+    Object.keys(sessions).forEach(function(sid){
+      var cf=findCf(bySession[sid])||{};
+      var label=[cf.city, cf.regionCode||cf.region, cf.country].filter(Boolean).join(', ');
+      if(!label) label='(unknown)';
+      regionCounts[label]=(regionCounts[label]||0)+1;
+    });
     var regions=Object.keys(regionCounts).map(function(k){return [k,regionCounts[k]];}).sort(function(a,b){return b[1]-a[1];});
     html+='<h2>Regions</h2><table><thead><tr><th>location</th><th class="num">sessions</th><th class="num">%</th></tr></thead><tbody>';
     if(!regions.length){ html+='<tr><td colspan="3" class="empty" style="padding:14px">No region data yet.</td></tr>'; }
@@ -194,13 +242,24 @@
   }
   function openSession(sid){
     var evs=sessionsData[sid]; if(!evs||!evs.length) return;
-    var start=evs[0].ts, visitor=evs[0].visitorId||'?', g=null, ua='';
-    evs.forEach(function(e){ if(e.action==='geo') g=e.detail; if(e.action==='open') ua=(e.detail||{}).ua||''; });
-    var region=g?[g.city,g.region,g.country].filter(Boolean).join(', '):'unknown';
+    var start=evs[0].ts, visitor=evs[0].visitorId||'?';
+    var meta=sessionMeta(evs);
+    var dev=parseUA(meta.ua);
+    var cf=meta.cf||{};
+    var loc=[cf.city, cf.region, cf.country].filter(Boolean).join(', ')||'unknown';
+    var isp=cf.asOrganization?(cf.asOrganization+(cf.asn?(' (AS'+cf.asn+')'):'')):'unknown ISP';
+    var net=[cf.httpProtocol,cf.tlsVersion,cf.colo].filter(Boolean).join(' · ');
     var rows='';
     evs.forEach(function(e){ rows+='<tr><td class="t mono">+'+Math.round((e.ts-start)/1000)+'s</td><td><span class="tag">'+esc(e.action)+'</span></td><td>'+describeEvent(e)+'</td></tr>'; });
+    var lineTag=meta.tag?('<span class="tag" style="background:#7241F6;color:#fff">'+esc(meta.tag)+'</span> &middot; '):'';
+    var lineDev=esc(dev.device)+' &middot; '+esc(dev.os)+' &middot; '+esc(dev.browser)+(meta.viewport?(' &middot; '+esc(meta.viewport)+(meta.dpr?(' @'+meta.dpr+'x'):'')):'');
+    var lineLoc=esc(isp)+' &middot; '+esc(loc)+(cf.timezone?(' &middot; '+esc(cf.timezone)):'')+(cf.postalCode?(' &middot; '+esc(cf.postalCode)):'');
+    var lineTime='started '+new Date(start).toLocaleString()+' &middot; '+evs.length+' events'+(typeof meta.visibleMs==='number'?(' &middot; active '+fmtMs(meta.visibleMs)):'');
     var html='<div class="modal-head"><h3>Session '+esc(sid.slice(0,8))+'…</h3><button id="m-close">✕ Close</button></div>'
-      +'<div class="modal-meta">visitor '+esc((visitor||'').slice(0,12))+' · '+esc(region)+'<br>started '+new Date(start).toLocaleString()+' · '+evs.length+' events'+(ua?('<br>'+esc(ua)):'')+'</div>'
+      +'<div class="modal-meta">'+lineTag+lineDev+'<br>'+lineLoc+(net?('<br>'+esc(net)):'')+'<br>'+lineTime
+      +(meta.referrer?('<br>ref: '+esc(meta.referrer)):'')
+      +(meta.ua?('<br><span style="opacity:.7">'+esc(meta.ua)+'</span>'):'')
+      +'</div>'
       +'<table class="tl"><thead><tr><th>t</th><th>event</th><th>detail</th></tr></thead><tbody>'+rows+'</tbody></table>'
       +'<div class="modal-actions"><button class="danger" id="m-del">Delete this session</button><button id="m-close2">Close</button></div>';
     document.getElementById('modal-panel').innerHTML=html;

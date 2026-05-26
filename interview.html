@@ -1414,10 +1414,28 @@
   try { visitorId = localStorage.getItem('bmx-visitor') || (localStorage.setItem('bmx-visitor', uuid()), localStorage.getItem('bmx-visitor')); } catch (e) { visitorId = uuid(); }
   try { sessionId = sessionStorage.getItem('bmx-session') || (sessionStorage.setItem('bmx-session', uuid()), sessionStorage.getItem('bmx-session')); } catch (e) { sessionId = uuid(); }
 
+  // Recipient tag: ?u=ek (or ?tag=ek). Sticky in localStorage so a bookmark keeps the tag.
+  var tag = '';
+  try {
+    var tagParam = (params.get('u') || params.get('tag') || '').slice(0, 40);
+    if (tagParam) { tag = tagParam; try { localStorage.setItem('bmx-tag', tag); } catch (e) {} }
+    else { try { tag = localStorage.getItem('bmx-tag') || ''; } catch (e) {} }
+  } catch (e) {}
+
   var sessionStart = Date.now();
   var curSection = 1, curName = 'cover', sectionEnter = sessionStart;
   var maxScroll = 0, scrollMarks = { 25:false, 50:false, 75:false, 100:false };
   var buffer = [], flushTimer = null, flushing = false;
+
+  // Active-time tracking via Page Visibility API: cumulative ms the tab was foregrounded.
+  var visibleMs = 0;
+  var visibleStart = (document.visibilityState === 'visible') ? sessionStart : 0;
+  function visibleSnapshot() { return visibleMs + (visibleStart ? Date.now() - visibleStart : 0); }
+  document.addEventListener('visibilitychange', function () {
+    var now = Date.now();
+    if (document.visibilityState === 'visible') { visibleStart = now; }
+    else if (visibleStart) { visibleMs += now - visibleStart; visibleStart = 0; }
+  });
 
   function track(action, detail) {
     buffer.push({
@@ -1447,30 +1465,15 @@
   }
 
   track('open', {
-    ua: navigator.userAgent.slice(0, 200),
+    ua: navigator.userAgent.slice(0, 250),
     viewport: window.innerWidth + 'x' + window.innerHeight,
+    dpr: window.devicePixelRatio || 1,
+    screen: (screen.width || 0) + 'x' + (screen.height || 0),
     referrer: (document.referrer || '').slice(0, 200),
-    lang: navigator.language || ''
+    lang: navigator.language || '',
+    tag: tag || ''
   });
-
-  // ----- region/geo enrichment (one client-side IP-geo lookup per session; no raw IP stored) -----
-  (function enrichGeo() {
-    try { if (sessionStorage.getItem('bmx-geo')) return; } catch (e) {}
-    function save(g) {
-      var geo = { country: g.country || '', region: g.region || '', city: g.city || '' };
-      try { sessionStorage.setItem('bmx-geo', JSON.stringify(geo)); } catch (e) {}
-      track('geo', geo);
-    }
-    fetch('https://ipwho.is/', { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (g) { if (g && g.success !== false && (g.country || g.city)) save(g); else throw 0; })
-      .catch(function () {
-        fetch('https://get.geojs.io/v1/ip/geo.json', { cache: 'no-store' })
-          .then(function (r) { return r.json(); })
-          .then(function (g) { if (g && (g.country || g.city)) save(g); })
-          .catch(function () {});
-      });
-  })();
+  // Geo is now stamped server-side by the Worker (request.cf), so no third-party IP lookup needed.
 
   var sections = Array.prototype.slice.call(document.querySelectorAll('section[data-section]'));
   if ('IntersectionObserver' in window && sections.length) {
@@ -1521,7 +1524,14 @@
   }, true);
 
   function onLeave() {
-    track('unload', { section: curSection, sectionDwellMs: Date.now() - sectionEnter, totalMs: Date.now() - sessionStart, maxScrollPct: maxScroll });
+    track('unload', {
+      section: curSection,
+      sectionDwellMs: Date.now() - sectionEnter,
+      totalMs: Date.now() - sessionStart,
+      visibleMs: visibleSnapshot(),
+      maxScrollPct: maxScroll,
+      tag: tag || ''
+    });
     flush({ keepalive: true });
   }
   window.addEventListener('pagehide', onLeave);
